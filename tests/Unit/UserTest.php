@@ -58,6 +58,6 @@ class UserTest extends TestCase
         $user->claimJobPreferencesForSchedule($preferredJobIds, $schedule);
 
         $this->assertNotNull($jobPreference = $user->jobPreferenceForSchedule($schedule));
-        $this->assertEquals($preferredJobIds, $jobPreference->preference);
+        $this->assertEquals($preferredJobIds, $jobPreference->preferences);
     }
 }

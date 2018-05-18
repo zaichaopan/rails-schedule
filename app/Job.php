@@ -11,7 +11,7 @@ class Job extends Model
     const FOREMAN = 'foreman';
     const ENGINEER = 'engineer';
 
-    public $temptChoice;
+    public $temptChosenUser;
 
     protected $guarded = [];
 
@@ -35,7 +35,7 @@ class Job extends Model
         return [static::FOREMAN, static::ENGINEER];
     }
 
-    public function shouldReassignTemptChoice(UserJobPreference $userJobPreference): bool
+    public function shouldReassignTemptChosenUser(UserJobPreference $userJobPreference): bool
     {
     }
 }

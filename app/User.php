@@ -45,7 +45,7 @@ class User extends Authenticatable
 
     public function claimJobPreferencesForSchedule(array $jobIds, Schedule $schedule): UserJobPreference
     {
-        return $this->jobPreferences()->create(['preference' => $jobIds, 'schedule_id' => $schedule->id]);
+        return $this->jobPreferences()->create(['preferences' => $jobIds, 'schedule_id' => $schedule->id]);
     }
 
     public function jobPreferenceForSchedule(Schedule $schedule): ?UserJobPreference

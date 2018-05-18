@@ -16,7 +16,7 @@ class CreateUserJobPreferencesTable extends Migration
         Schema::create('user_job_preferences', function (Blueprint $table) {
             $table->increments('id');
             $table->unsignedInteger('user_id');
-            $table->text('preference')->nullable();
+            $table->text('preferences')->nullable();
             $table->unsignedBigInteger('schedule_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('schedule_id')->references('id')->on('schedules')->onDelete('cascade');

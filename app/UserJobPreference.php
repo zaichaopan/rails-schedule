@@ -12,7 +12,7 @@ class UserJobPreference extends Model
     protected $guarded = [];
 
     protected $casts = [
-         'preference' => 'array'
+         'preferences' => 'array'
     ];
 
     public function user(): BelongsTo
@@ -30,22 +30,22 @@ class UserJobPreference extends Model
         return $this->where('schedule_id', $schedule->id);
     }
 
-    public function hasPreferences()
+    public function hasPreferences(): bool
     {
-        return !is_null($this->preference) && count($this->preference) > 0;
+        return !is_null($this->preferences) && count($this->preferences) > 0;
     }
 
-    public function removeInvalidJobChoices(Collection $jobs)
+    public function removeInvalidJobChoices(Collection $jobs): void
     {
-        return $this->preference = collect($this->preference)
+        $this->preferences = collect($this->preferences)
             ->intersect(collect($jobs->pluck('id')->toArray()))
             ->all();
     }
 
-    public function removeFirstChoice()
+    public function removeFirstChoiceJob(): void
     {
-        $preference = $this->preference;
-        array_shift($preference);
-        $this->preference = $preference;
+        $preferences = $this->preferences;
+        array_shift($preferences);
+        $this->preferences = $preferences;
     }
 }

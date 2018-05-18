@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 class Schedule extends Model
 {
@@ -24,12 +25,12 @@ class Schedule extends Model
         return $this->hasMany(UserJobPreference::class);
     }
 
-    public function assignJobs()
+    public function assignJobs(): void
     {
         $this->matchPreferences($this->getValidUserJobPreferences());
     }
 
-    public function matchPreferences(Collection $userJobPreferences)
+    public function matchPreferences(Collection $userJobPreferences): void
     {
         if (count($userJobPreferences) === 0) {
             return;
@@ -37,42 +38,40 @@ class Schedule extends Model
 
         $original = $userJobPreferences->map(function ($item) {return $item;});
 
-        $userJobPreferences->each(function ($userJobPreference, $key) use ($jobs, $original) {
-            $preference = $userJobPreference->preference;
-
-            if (count($preferences) === 0) {
+        $userJobPreferences->each(function ($userJobPreference, $key) use ($original) {
+            if (count($userJobPreference->preferences) === 0) {
                 return $original->forget($key);
             }
 
-            $firstChoiceJob = $this->jobs->first(function () use ($preference) {
-                return (int)$job->id === (int)$preference[0];
+            $firstChoiceJob = $this->jobs->first(function ($job) use ($userJobPreference) {
+                return (int)$job->id === (int)$userJobPreference->preferences[0];
             });
 
-            if (is_null($firstChoiceJob->tempChoice)) {
-                $firstChoiceJob->tempChoice = $userJobPreference;
+            if (is_null($firstChoiceJob->tempChosenUser)) {
+                $firstChoiceJob->tempChosenUser = $userJobPreference;
                 return $original->forget($key);
             }
 
-            if ($firstChoiceJob->shouldReassignTempChoice($userJobPreference)) {
-                $replacedUserJobPreference = $firstChoiceJob->tempChoice;
-                $firstChoiceJob->tempChoice = $userJobPreference;
-                $replacedUserJobPreference->removeFirstChoice();
+            if ($firstChoiceJob->shouldReassignTempChosenUser($userJobPreference)) {
+                $replacedUserJobPreference = $firstChoiceJob->tempChosenUser;
+                $firstChoiceJob->tempChosenUser = $userJobPreference;
+                $replacedUserJobPreference->removeFirstChoiceJob();
                 return $original->push($replacedUserJobPreference);
             }
 
             $original->forget($key);
-            $userJobPreference->removeFirstChoice();
+            $userJobPreference->removeFirstChoiceJob();
             $original->push($userJobPreference);
         });
 
         $this->matchPreferences($original);
     }
 
-    public function getValidUserJobPreferences()
+    public function getValidUserJobPreferences(): Collection
     {
         return $this->userJobPreferences
             ->filter
-            ->hasPreference()
+            ->hasPreferences()
             ->each
             ->removeInvalidJobChoices($this->jobs);
     }
