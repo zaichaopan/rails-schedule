@@ -11,6 +11,16 @@ class JobTest extends TestCase
     use RefreshDatabase;
 
     /** @test */
+    public function it_can_the_user_a_job_belongs_to()
+    {
+        $user = factory('App\User')->create();
+        $job = factory('App\Job')->create(['user_id' => $user->id]);
+
+        $this->assertInstanceOf('App\User', $jobSchedule = $job->user);
+        $this->assertEquals($user->id, $jobSchedule->id);
+    }
+
+    /** @test */
     public function it_can_get_the_schedule_a_job_belongs_to()
     {
         $schedule = factory('App\Schedule')->create();

@@ -11,7 +11,14 @@ class Job extends Model
     const FOREMAN = 'foreman';
     const ENGINEER = 'engineer';
 
+    public $temptChoice;
+
     protected $guarded = [];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function schedule(): BelongsTo
     {
@@ -23,8 +30,12 @@ class Job extends Model
         return $this->where('schedule_id', '=', (string)$schedule->id);
     }
 
-    public static function getAcceptedJobType()
+    public static function getAcceptedJobType(): array
     {
         return [static::FOREMAN, static::ENGINEER];
+    }
+
+    public function shouldReassignTemptChoice(UserJobPreference $userJobPreference): bool
+    {
     }
 }
