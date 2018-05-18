@@ -11,6 +11,11 @@ class Job extends Model
     const FOREMAN = 'foreman';
     const ENGINEER = 'engineer';
 
+    /**
+     * Temporarily store user with preferences for scheduling
+     *
+     * @var UserJobPreference
+     */
     public $temptChosenUser;
 
     protected $guarded = [];
@@ -37,5 +42,16 @@ class Job extends Model
 
     public function shouldReassignTemptChosenUser(UserJobPreference $userJobPreference): bool
     {
+        if (is_null($this->temptChosenUser)) {
+            return true;
+        }
+
+        $type = ucfirst($this->type);
+
+        $method = "hasMoreExperienceAs{$this->type}";
+
+        return method_exists($userJobPreference->user, $method)
+            ? $userJobPreference->user->$method($this->temptChosenUser->user())
+            : false;
     }
 }
