@@ -1,5 +1,6 @@
 <?php
 
+use App\Job;
 use Faker\Generator as Faker;
 
 /*
@@ -22,15 +23,16 @@ $factory->define(App\User::class, function (Faker $faker) {
     ];
 });
 
-$factory->state(App\User::class, 'foreman', function (Faker $faker) {
+$factory->state(App\User::class, Job::FOREMAN, function (Faker $faker) {
     return [
-        'engineer_since' => null
+        'engineer_since' => null,
+        'foreman_since' => $faker->dateTimeThisDecade($max = 'now', $timezone = null)
     ];
 });
 
-
-$factory->state(App\User::class, 'engineer', function (Faker $faker) {
+$factory->state(App\User::class, Job::ENGINEER, function (Faker $faker) {
     return [
-        'engineer_since' => $faker->dateTimeThisDecade($max = 'now', $timezone = null)
+        'foreman_since' => $faker->dateTimeThisDecade($max = 'now', $timezone = null),
+        'engineer_since' => $faker->dateTimeThisDecade($max = 'now', $timezone = null),
     ];
 });

@@ -11,6 +11,10 @@ class UserJobPreference extends Model
 {
     protected $guarded = [];
 
+    protected $with = [
+        'user'
+    ];
+
     protected $casts = [
          'preferences' => 'array'
     ];
@@ -35,11 +39,22 @@ class UserJobPreference extends Model
         return !is_null($this->preferences) && count($this->preferences) > 0;
     }
 
+    public function hasNotPreferences(): bool
+    {
+        return !$this->hasPreferences();
+    }
+
     public function removeInvalidJobChoices(Collection $jobs): void
     {
         $this->preferences = collect($this->preferences)
             ->intersect(collect($jobs->pluck('id')->toArray()))
-            ->all();
+            ->filter(function ($preference) use ($jobs) {
+                $job = $jobs->first(function ($job) use ($preference) {
+                    return (int)$job->id === (int)$preference;
+                });
+
+                return $job ? $this->user->isQualifiedForJob($job) : false;
+            })->unique()->values()->all();
     }
 
     public function removeFirstChoiceJob(): void

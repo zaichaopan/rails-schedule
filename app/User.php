@@ -2,7 +2,6 @@
 
 namespace App;
 
-use Carbon\Carbon;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -49,12 +48,17 @@ class User extends Authenticatable
         return !is_null($this->engineer_since);
     }
 
+    public function isForeman() : bool
+    {
+        return !is_null($this->foreman_since);
+    }
+
     public function gainEngineerQualification(string $date): self
     {
         return tap($this)->update(['engineer_since' => $date]);
     }
 
-    public function claimJobPreferencesForSchedule(array $jobIds, Schedule $schedule): UserJobPreference
+    public function submitJobPreferencesForSchedule(array $jobIds, Schedule $schedule): UserJobPreference
     {
         return $this->jobPreferences()->create(['preferences' => $jobIds, 'schedule_id' => $schedule->id]);
     }
@@ -64,15 +68,22 @@ class User extends Authenticatable
         return $this->jobPreferences()->where('schedule_id', $schedule->id)->first();
     }
 
-    public function hasMoreExperienceAsForeman(User $user): bool
+    public function hasMoreExperienceAsForemanThan(User $user): bool
     {
-        return Carbon::createFromFormat('Y-m-d', $this->foreman_since)
-            ->lt(Carbon::createFromFormat('Y-m-d', $user->foreman_since));
+        return $this->isForeman() && $this->foreman_since->diffInDays($user->foreman_since, false) > 0;
     }
 
-    public function hasMoreExperienceAsEngineer(User $user):bool
+    public function hasMoreExperienceAsEngineerThan(User $user):bool
     {
-        return Carbon::createFromFormat('Y-m-d', $this->engineer_since)
-            ->lt(Carbon::createFromFormat('Y-m-d', $user->engineer_since));
+        return $this->isEngineer() && $this->engineer_since->diffInDays($user->engineer_since, false) > 0;
+    }
+
+    public function isQualifiedForJob(Job $job): bool
+    {
+        $type = ucfirst($job->type);
+
+        return method_exists($this, $method = "is{$type}")
+            ? $this->{$method}()
+            : false;
     }
 }

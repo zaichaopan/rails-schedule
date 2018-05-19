@@ -27,7 +27,13 @@ class Schedule extends Model
 
     public function assignJobs(): void
     {
-        $this->matchPreferences($this->getValidUserJobPreferences());
+        if (count($validUserJobPreferences = $this->getValidUserJobPreferences()) === 0) {
+            return;
+        }
+
+        $this->matchPreferences($validUserJobPreferences);
+
+        $this->jobs->each->assignUser();
     }
 
     public function matchPreferences(Collection $userJobPreferences): void
@@ -39,7 +45,7 @@ class Schedule extends Model
         $original = $userJobPreferences->map(function ($item) {return $item;});
 
         $userJobPreferences->each(function ($userJobPreference, $key) use ($original) {
-            if (count($userJobPreference->preferences) === 0) {
+            if ($userJobPreference->hasNotPreferences()) {
                 return $original->forget($key);
             }
 
@@ -47,16 +53,17 @@ class Schedule extends Model
                 return (int)$job->id === (int)$userJobPreference->preferences[0];
             });
 
-            if (is_null($firstChoiceJob->tempChosenUser)) {
-                $firstChoiceJob->tempChosenUser = $userJobPreference;
+            if (is_null($firstChoiceJob->chosenUser)) {
+                $firstChoiceJob->setChosenUser($userJobPreference);
                 return $original->forget($key);
             }
 
-            if ($firstChoiceJob->shouldReassignTempChosenUser($userJobPreference)) {
-                $replacedUserJobPreference = $firstChoiceJob->tempChosenUser;
-                $firstChoiceJob->tempChosenUser = $userJobPreference;
-                $replacedUserJobPreference->removeFirstChoiceJob();
-                return $original->push($replacedUserJobPreference);
+            if ($firstChoiceJob->shouldChangeChosenUser($userJobPreference)) {
+                $currentChosenUser = $firstChoiceJob->chosenUser;
+                $firstChoiceJob->setChosenUser($userJobPreference);
+                $original->forget($key);
+                $currentChosenUser->userJobPreference->removeFirstChoiceJob();
+                return $original->push($currentChosenUser->userJobPreference);
             }
 
             $original->forget($key);
