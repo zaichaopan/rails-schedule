@@ -27,18 +27,17 @@ class Schedule extends Model
 
     public function assignJobs(): void
     {
-        if (count($validUserJobPreferences = $this->getValidUserJobPreferences()) === 0) {
-            return;
+        $validUserJobPreferences = $this->getValidUserJobPreferences();
+
+        if ($validUserJobPreferences->isNotEmpty()) {
+            $this->matchPreferences($validUserJobPreferences);
+            $this->jobs->each->assignUser();
         }
-
-        $this->matchPreferences($validUserJobPreferences);
-
-        $this->jobs->each->assignUser();
     }
 
     public function matchPreferences(Collection $userJobPreferences): void
     {
-        if (count($userJobPreferences) === 0) {
+        if ($userJobPreferences->isEmpty()) {
             return;
         }
 

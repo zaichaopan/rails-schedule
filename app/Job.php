@@ -64,10 +64,8 @@ class Job extends Model
 
     public function assignUser(): void
     {
-        if (is_null($this->chosenUser)) {
-            return;
+        if (!is_null($this->chosenUser)) {
+            $this->update(['user_id' => $this->chosenUser->user()->id]);
         }
-
-        $this->update(['user_id' => $this->chosenUser->user()->id]);
     }
 }

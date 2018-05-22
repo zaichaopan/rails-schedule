@@ -36,12 +36,12 @@ class UserJobPreference extends Model
 
     public function hasPreferences(): bool
     {
-        return !is_null($this->preferences) && count($this->preferences) > 0;
+        return !$this->hasNotPreferences();
     }
 
     public function hasNotPreferences(): bool
     {
-        return !$this->hasPreferences();
+        return empty($this->preferences);
     }
 
     public function removeInvalidJobChoices(Collection $jobs): void
